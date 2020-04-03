@@ -1,0 +1,115 @@
+import random
+from prettytable import PrettyTable
+import math
+x11, x12, x13 = -1, 1, -1
+x21, x22, x23 = -1, -1, 1
+m = 5
+x1max = 60
+x1min = 10
+x2max = -10
+x2min = -70
+
+
+def genY(l):
+    y = []
+    for i in range(l):
+        y.append(random.randint(-910, -810))
+    return y
+def crRomana(l, y1, y2, y3, rkr):
+    midy1 = sum(y1) / l
+    midy2 = sum(y2) / l
+    midy3 = sum(y3) / l
+    d1 = 0
+    d2 = 0
+    d3 = 0
+    for i in range(l):
+        d1 += math.pow(y1[i] - midy1 ,2)
+        d2 += math.pow(y2[i] - midy2 ,2)
+        d3 += math.pow(y3[i] - midy3 ,2)
+    dis1 = d1 / l
+    dis2 = d2 / l
+    dis3 = d3 / l
+    basic_exhaling = math.sqrt((2 * (2 * l - 2)) / (l * (l - 4)))
+    if dis1 >= dis2:
+        f12 = dis1 / dis2
+    else:
+        f12 = dis2 / dis1
+    if dis2 >= dis3:
+        f23 = dis2 / dis3
+    else:
+        f23 = dis3 / dis2
+    if dis1 >= dis3:
+        f13 = dis1 / dis3
+    else:
+        f13 = dis3 / dis1
+    o1 = (l - 2 / l ) * f12
+    o2 = (l - 2/ l ) * f23
+    o3 =( l - 2/  l ) *f13
+    r1 = math.fabs(o1 - 1) / basic_exhaling
+    r2 = math.fabs(o2 - 1) / basic_exhaling
+    r3 = math.fabs(o3 - 1) / basic_exhaling
+
+    if r1 < rkr and r2 < rkr and r3 < rkr:
+        print("Дисперсія однорідна")
+    else:
+        print("Дисперсія неоднорідна")
+def normalized_coefficients(l ,y1, y2 ,y3):
+    global b0 , b1 ,b2
+    mx1 =(x11+x12+x13)/3
+    mx2 = (x21 + x22 + x23) / 3
+    midy1 = sum(y1) / l
+    midy2 = sum(y2) / l
+    midy3 = sum(y3) / l
+    my = (midy1+midy2+midy3)/3
+    a1 = (x11**2+x12**2+x13**2)/3
+    a2 = (x11*x21+x12*x22+x13*x23)/3
+    a3 = (x21**2+x22**2+x23**2)/3
+    a11 = (x11*midy1+x12*midy2+x13*midy3)/3
+    a22 = (x21 * midy1 + x22 * midy2 + x23 * midy3) / 3
+    b0 = (my * a1 * a3 + mx1 * a2 * a22 + a11 * a2 * mx2 - (mx2 * a1 * a22 + mx1 * a11 * a3 + a2 * a2 * my)) / (1 * a1 * a3 + mx1 * a2 * mx2 + mx1 * a2 * mx2 - (mx2 * a1 * mx2 + mx1 * mx1 * a3 + a2 * a2 * 1))
+    b1 = (1 * a11 * a3 + my * a2 * mx2 + mx1 * a22 * mx2 - (mx2 * a11 * mx2 + a22 * a2 * 1 + my * mx1 * a3)) / (1 * a1 * a3 + mx1 * a2 * mx2 + mx1 * a2 * mx2 - (mx2 * a1 * mx2 + a2 * a2 * 1 + mx1 * mx1 * a3))
+    b2 = (1 * a1 * a22 + mx1 * a11 * mx2 + mx1 * a2 * my - (my * a1 * mx2 + mx1 * mx1 * a22 + a2 * a11 * 1)) / (1 * a1 * a3 + mx1 * a2 * mx2 + mx1 * a2 * mx2 - (mx2 * a1 * mx2 + mx1 * mx1 * a3 + a2 * a2 * 1))
+    print("Нормоване рівняння регресії: {0} + {1}*x1+{2}*x2".format(round(b0,3) , round(b1,3) ,round(b2,2)))
+    print("Зробимо перевірку:")
+    print(midy1)
+    print(midy2)
+    print(midy3)
+    print("b0-b1-b2=" + str(round(b0 - b1 - b2, 3)))
+    print("b0+b1-b2=" + str(round(b0 + b1 - b2, 3)))
+    print("b0-b1+b2=" + str(round(b0 - b1 + b2, 3)))
+def naturalization_coefficients():
+    delx1 = abs(x1max - x1min) / 2
+    delx2 = abs(x2max - x2min) / 2
+    x10 = (x1max + x1min) / 2
+    x20 = (x2max + x2min) / 2
+    a0n = b0 - b1 * (x10 / delx1) - b2 * (x20 / delx2)
+    a1n = (b1 / delx1)
+    a2n = (b2 / delx2)
+    print("Натуралізоване рівняння: {0}+{1}*x1+{2}*x2".format(round(a0n,3) , round(a1n ,3) ,round(a2n ,3)))
+    print("a0+a1*x1min+a2*x2min=" + str(round(a0n + a1n * x1min + a2n * x2min, 2)))
+    print("a0+a1*x1max+a2*x2min=" + str(round(a0n + a1n * x1max + a2n * x2min, 2)))
+    print("a0+a1*x1min+a2*x2max=" + str(round(a0n + a1n * x1min + a2n * x2max, 2)))
+def createTable(l, y1, y2, y3):
+    x = PrettyTable()
+    list = ["x1", "x2"]
+    for i in range(l):
+        list.append("y" + str(i + 1))
+    x.field_names = list
+    y1.insert(0, x21)
+    y1.insert(0, x11)
+    y2.insert(0, x22)
+    y2.insert(0, x12)
+    y3.insert(0, x23)
+    y3.insert(0, x13)
+    x.add_row(y1)
+    x.add_row(y2)
+    x.add_row(y3)
+    print(x)
+y1 = genY(m)
+y2 = genY(m)
+y3 = genY(m)
+crRomana(m , y1 ,y2 , y3 , 2)
+normalized_coefficients(m , y1 ,y2 ,y3)
+print(" ")
+naturalization_coefficients()
+createTable(m, y1, y2, y3)
